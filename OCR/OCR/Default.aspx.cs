@@ -29,50 +29,13 @@ namespace OCRExtractTable
         #region--btnOCRReader_Click--
         protected void btnOCRReader_Click(object sender, EventArgs e)
         {
-            int totalColumns = 0;
-            int.TryParse(txtColumns.Text, out totalColumns);
-
-            if (totalColumns == 0)
-            {
-                return;
-            }
-
-            string filePath = Server.MapPath("~/uploads/" + Path.GetFileName(hdnUploadedImage.Value));
-
-            // Crop Image Here & Save
-            string fileName = Path.GetFileName(filePath);
-            string cropFileName = "";
-            string cropFilePath = "";
-            if (File.Exists(filePath))
-            {
-                System.Drawing.Image orgImg = System.Drawing.Image.FromFile(filePath);
-                Rectangle CropArea = new Rectangle(
-                    Convert.ToInt32(X.Value),
-                    Convert.ToInt32(Y.Value),
-                    Convert.ToInt32(W.Value),
-                    Convert.ToInt32(H.Value));
-                try
-                {
-                    Bitmap bitMap = new Bitmap(CropArea.Width, CropArea.Height);
-                    using (Graphics g = Graphics.FromImage(bitMap))
-                    {
-                        g.DrawImage(orgImg, new Rectangle(0, 0, bitMap.Width, bitMap.Height), CropArea, GraphicsUnit.Pixel);
-                    }
-                    cropFileName = "crop_" + fileName;
-                    cropFilePath = Path.Combine(Server.MapPath("~/uploads"), cropFileName);
-                    bitMap.Save(cropFilePath);
-                    //Response.Redirect("~/UploadImages/" + cropFileName, false);
-                }
-                catch (Exception ex)
-                {
-                    //throw;
-                }
-            }
+            string cropFilePath = Server.MapPath("~/uploads/" + hdnCroppedImage.Value);
             this.ExtractTextFromImage(cropFilePath);
-
+            
         }
         #endregion
 
+        #region--ExtractTextFromImage--     
         private string ExtractTextFromImage(string filePath)
         {
             string datapath = Server.MapPath("~");
@@ -80,7 +43,8 @@ namespace OCRExtractTable
             System.Drawing.Image img = System.Drawing.Image.FromFile(filePath, true);
 
             int totalColumns = 0;
-            int.TryParse(txtColumns.Text, out totalColumns);
+            totalColumns = hdnColumnWidths.Value.Split(',').Length;
+            //int.TryParse(txtColumns.Text, out totalColumns);
             int totalRows = 0;
 
             using (var api = OcrApi.Create())
@@ -127,7 +91,7 @@ namespace OCRExtractTable
                             using (var bmp = Bitmap.FromFile(temp_crop_file) as Bitmap)
                             {
                                 api.PageSegmentationMode = PageSegMode.PSM_RAW_LINE;
-                                string extracedText =api.GetTextFromImage(bmp);
+                                string extracedText = api.GetTextFromImage(bmp);
                                 if (IsValidLetter(extracedText))
                                 {
                                     lstdata.Add(extracedText);
@@ -169,7 +133,9 @@ namespace OCRExtractTable
             //modiDocument.Close();
             return extractedText;
         }
+        #endregion
 
+        #region--Multi Crop--
         public List<System.Drawing.Image> MultiCrop(string filepath, System.Drawing.Image img, int row, int col)
         {
             List<decimal> widthlst = new List<decimal>();
@@ -208,7 +174,9 @@ namespace OCRExtractTable
             }
             return list;
         }
+        #endregion
 
+        #region--Crop Image--
         private System.Drawing.Image cropImage(System.Drawing.Image img, Rectangle cropArea)
         {
             Bitmap bmpImage = new Bitmap(img);
@@ -220,6 +188,7 @@ namespace OCRExtractTable
             return newImage;
 
         }
+        #endregion
 
         #region--Resize Image--
         public System.Drawing.Image resizeImage(System.Drawing.Image image, int maxWidth, int maxHeight)
@@ -300,8 +269,8 @@ namespace OCRExtractTable
         public bool IsValidLetter(string word)
         {
             // isolate the letters
-            string[] letters = new string[] {"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9"}; // other strings or letters
-                
+            string[] letters = new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }; // other strings or letters
+
             bool flag = false;
             // check if the work does not contain any letter
             if (letters.Any(x => word.Contains(x.ToLower())))
@@ -349,6 +318,12 @@ namespace OCRExtractTable
             hdnCroppedImage.Value = cropFileName;
             divOcrProcess.Visible = true;
             imgCropped.ImageUrl = "~/uploads/" + cropFileName;
+            Page.ClientScript.RegisterStartupScript(this.GetType(), "CallMyFunction", "DrawSlider(1)", true);
+        }
+
+        protected void btnAddNewImage_Click(object sender, EventArgs e)
+        {
+            Response.Redirect(Request.RawUrl);
         }
 
     }

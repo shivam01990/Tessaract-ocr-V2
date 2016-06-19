@@ -34,10 +34,9 @@
 
     <link href="content/bootstrap-fileinput/css/fileinput.css" rel="stylesheet" />
     <script type="text/javascript" src="js/jquery.min.js"></script>
-
-    <script src="https://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="content/jquery-ui/jquery-ui.min.js"></script>
     <!-- plus a jQuery UI theme, here I use "flick" -->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/flick/jquery-ui.css">
+    <link href="content/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
     <link href="css/jquery-ui-slider-pips.css" rel="stylesheet" />
     <script src="js/jquery-ui-slider-pips.js"></script>
 
@@ -112,7 +111,7 @@
             }).slider("float");
         }
 
-       
+
 
         var currentcolumn = 1;
 
@@ -137,7 +136,26 @@
         }
 
 
+        function readSliderColumndata() {
+            var columns = $("#alternating-slider").slider("values");
+            var colstr = '';
+            for (var i = 0; i < columns.length; i++) {
+                var temp = 0;
+                if (i == 0) {
+                    temp = columns[i];
+                }
+                else {
+                    temp = columns[i] - columns[i - 1];
+                }
 
+                colstr = colstr + temp + ',';
+            }
+            if (colstr.length > 0) {
+                colstr = colstr.substring(0, colstr.length - 1);
+            }
+            $("[id$=hdnColumnWidths]").val(colstr);
+            $("[id$=btnAddNew]").show();
+        }
 
         Number.prototype.toFixedDown = function (digits) {
             var re = new RegExp("(\\d+\\.\\d{" + digits + "})(\\d)"),
@@ -198,28 +216,28 @@
 
             <div id="divOcrProcess" visible="false" runat="server" style="margin-top: 50px;">
                 <div class="form-horizontal">
-                    <div class="form-group col-sm-7">
+                    <div class="form-group col-sm-12">
                         <div class="col-sm-12">
                             <span class="glyphicon glyphicon-plus-sign" aria-hidden="true" title="Add Column" onclick="AddColumn()"></span>
                             <span class="glyphicon glyphicon-minus-sign" aria-hidden="true" title="Remove Column" onclick="RemoveColumn()"></span>
 
                         </div>
-                        <div class="col-sm-12" id="alternating-slider-parent" style="margin-bottom:20px;">
+                        <div class="col-sm-12" id="alternating-slider-parent" style="margin-bottom: 20px;">
                             <div id="alternating-slider"></div>
                         </div>
                         <div class="col-sm-12">
                             <asp:Image ID="imgCropped" Width="100%" runat="server" />
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="inputEmail3" class="col-sm-2 control-label">Total Columns</label>
-                        <div class="col-sm-10">
-                            <asp:TextBox ID="txtColumns" runat="server" class="form-control" placeholder="Columns"></asp:TextBox>
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <asp:Button ID="btnOCRReader" runat="server" Text="Read Image Data" CssClass="btn btn-primary" OnClick="btnOCRReader_Click" OnClientClick="return readAlltextbox();" />
+
+                    <div class="form-group col-sm-12">
+                        <div class="col-sm-2">
+                            <asp:Button ID="btnOCRReader" runat="server" Text="Read Image" CssClass="btn btn-primary" OnClick="btnOCRReader_Click" OnClientClick="return readSliderColumndata();" />
+                        </div>
+                        <div id="btnAddNew" class="col-sm-2" style="display: none;">
+                            <asp:Button ID="btnAddNewImage" runat="server" Text="Add New Image" CssClass="btn btn-primary" OnClick="btnAddNewImage_Click" />
+                        </div>
                     </div>
                 </div>
             </div>
