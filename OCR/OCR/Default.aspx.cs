@@ -30,7 +30,13 @@ namespace OCRExtractTable
         protected void btnOCRReader_Click(object sender, EventArgs e)
         {
             string cropFilePath = Server.MapPath("~/uploads/" + hdnCroppedImage.Value);
-            this.ExtractTextFromImage(cropFilePath);
+            try
+            {
+                this.ExtractTextFromImage(cropFilePath);
+            }catch
+            {
+
+            }
             
         }
         #endregion
